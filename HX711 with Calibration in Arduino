@@ -1,0 +1,56 @@
+#include "HX711.h"
+
+// Pin definitions
+const int LOADCELL_DOUT_PIN = 3;  // Data pin connected to HX711 DT
+const int LOADCELL_SCK_PIN = 2;   // Clock pin connected to HX711 SCK
+
+HX711 scale;  // Create an instance of the HX711 class
+
+float calibration_factor;  // Scale factor for calibration
+
+void setup() {
+  Serial.begin(9600);  // Initialize serial communication
+
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);  // Initialize the HX711 module
+
+  Serial.println("Remove all weight from the load cell.");
+  delay(2000);
+
+  // Tare to zero the scale
+  scale.tare();
+  Serial.println("Load cell tared.");
+
+  // Measure raw value without load (after tare)
+  long zero_value = scale.read_average(20);
+  Serial.print("Raw value with no load: ");
+  Serial.println(zero_value);
+
+  // Apply a known weight to the load cell
+  Serial.println("Place a known weight on the load cell.");
+  delay(5000);  // Wait for the weight to be placed
+
+  long known_weight_value = scale.read_average(20);
+  Serial.print("Raw value with known weight: ");
+  Serial.println(known_weight_value);
+
+  float known_weight = 500.0;  // Enter the known weight in grams or kilograms
+
+  // Calculate the calibration factor
+  calibration_factor = (known_weight_value - zero_value) / known_weight;
+  Serial.print("Calibration factor: ");
+  Serial.println(calibration_factor);
+
+  scale.set_scale(calibration_factor);  // Set the scale to the calculated factor
+
+  Serial.println("Calibration completed.");
+}
+
+void loop() {
+  // Read the weight and print it to the Serial Monitor
+  float weight = scale.get_units(10);  // Average 10 readings for accuracy
+  Serial.print("Weight: ");
+  Serial.print(weight, 2);  // Print weight with 2 decimal places
+  Serial.println(" kg");
+
+  delay(500);  // Update the reading every half second
+}
