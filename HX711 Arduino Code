@@ -1,0 +1,28 @@
+#include "HX711.h"
+
+// Pin definitions
+const int LOADCELL_DOUT_PIN = 3;  // Data pin connected to HX711 DT
+const int LOADCELL_SCK_PIN = 2;   // Clock pin connected to HX711 SCK
+
+HX711 scale;  // Create an instance of the HX711 class
+
+void setup() {
+  Serial.begin(9600);  // Initialize serial communication
+
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);  // Initialize the HX711 module
+
+  scale.set_scale();  // Set the scale factor to use the raw data
+  scale.tare();  // Reset the scale to 0
+
+  Serial.println("Load cell ready");
+}
+
+void loop() {
+  // Read the weight and print it to the Serial Monitor
+  float weight = scale.get_units(10);  // Average 10 readings for accuracy
+  Serial.print("Weight: ");
+  Serial.print(weight, 2);  // Print the weight with 2 decimal places
+  Serial.println(" kg");
+
+  delay(500);  // Update the reading every half second
+}
